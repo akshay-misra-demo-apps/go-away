@@ -1,0 +1,9 @@
+.idea/
+.scannerwork/
+SQscript.sh
+
+## Do not allow binaries
+DOMBackend*
+
+## excluding Vendor folder
+vendor/
