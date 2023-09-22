@@ -35,7 +35,7 @@ func GenerateToken(user *models.User) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = user.Username
 	// Token expires in 24 hours
-	claims["exp"] = time.Now().Add(time.Second * 15).Unix()
+	claims["exp"] = time.Now().Add(time.Second * 30).Unix()
 
 	// Sign the token with a secret
 	secret := []byte(SECRET)

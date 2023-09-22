@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gocart.com/go-cart/interfaces"
 	"gocart.com/go-cart/models"
-	"gocart.com/go-cart/utils"
 )
 
 type ProductController struct {
@@ -22,6 +21,11 @@ func GetProductController(service interfaces.IProduct) *ProductController {
 }
 
 func (p ProductController) GetProducts(c *gin.Context) {
+	err := ValidateToken(c)
+	if err != nil {
+		return
+	}
+
 	fmt.Println("get all products")
 
 	products, err := p.Service.GetAll()
@@ -38,6 +42,11 @@ func (p ProductController) GetProducts(c *gin.Context) {
 }
 
 func (p ProductController) GetProduct(c *gin.Context) {
+	err := ValidateToken(c)
+	if err != nil {
+		return
+	}
+
 	fmt.Println("get product by id", c.Param("id"))
 
 	if c.Param("id") == "" {
@@ -61,20 +70,11 @@ func (p ProductController) GetProduct(c *gin.Context) {
 }
 
 func (p ProductController) CreateProduct(c *gin.Context) {
-	ok, err := utils.ValidateToken(c.GetHeader("Authorization"))
+	err := ValidateToken(c)
 	if err != nil {
-		c.JSON(403, gin.H{
-			"message": fmt.Sprintf("internal server error: %v", err.Error()),
-		})
 		return
 	}
-	if !ok {
-		c.JSON(403, gin.H{
-			"message": fmt.Sprintf("authentication error: %v", err.Error()),
-		})
 
-		return
-	}
 	fmt.Println("create new product")
 	var product models.Product
 	c.Bind(&product)
@@ -95,6 +95,11 @@ func (p ProductController) CreateProduct(c *gin.Context) {
 }
 
 func (p ProductController) PatchProduct(c *gin.Context) {
+	err := ValidateToken(c)
+	if err != nil {
+		return
+	}
+
 	fmt.Println("patch existing product", c.Param("id"))
 
 	if c.Param("id") == "" {
@@ -136,6 +141,11 @@ func (p ProductController) PatchProduct(c *gin.Context) {
 }
 
 func (p ProductController) DeleteProduct(c *gin.Context) {
+	err := ValidateToken(c)
+	if err != nil {
+		return
+	}
+
 	fmt.Println("delete product with id: ", c.Param("id"))
 
 	if c.Param("id") == "" {
@@ -145,7 +155,7 @@ func (p ProductController) DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	err := p.Service.Delete(c.Param("id"))
+	err = p.Service.Delete(c.Param("id"))
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
