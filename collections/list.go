@@ -1,26 +1,30 @@
-package structs
+package collections
 
 import (
 	"fmt"
 )
 
-type Node[T any] struct {
+// Node for Singly or Doubly Linked List
+type node[T any] struct {
 	Value T
-	Next  *Node[T]
-	Prev  *Node[T]
+	Next  *node[T]
+	Prev  *node[T]
 }
 
-type DoublyLinkedList[T any] struct {
-	Head *Node[T]
-	Tail *Node[T]
+// doublyLinkedList struct
+type doublyLinkedList[T any] struct {
+	Head *node[T]
+	Tail *node[T]
 }
 
-func New[T any]() *DoublyLinkedList[T] {
-	return &DoublyLinkedList[T]{}
+// NewDoublyLinkedList public func to create doubly linked list struct
+func NewDoublyLinkedList[T any]() *doublyLinkedList[T] {
+	return &doublyLinkedList[T]{}
 }
 
-func (list *DoublyLinkedList[T]) Add(value T) {
-	newNode := &Node[T]{Value: value}
+// Add a new entry to the doubly linked list
+func (list *doublyLinkedList[T]) Add(value T) {
+	newNode := &node[T]{Value: value}
 
 	if list.Head == nil {
 		list.Head = newNode
@@ -34,7 +38,7 @@ func (list *DoublyLinkedList[T]) Add(value T) {
 }
 
 // RemoveByIndex remove a node by index
-func (list *DoublyLinkedList[T]) RemoveByIndex(index int) (bool, error) {
+func (list *doublyLinkedList[T]) RemoveByIndex(index int) (bool, error) {
 	current := list.Head
 	for i := 0; i < index; i++ {
 		if current == nil {
@@ -62,7 +66,7 @@ func (list *DoublyLinkedList[T]) RemoveByIndex(index int) (bool, error) {
 	return true, nil
 }
 
-func (list *DoublyLinkedList[T]) PrintList() {
+func (list *doublyLinkedList[T]) String() {
 	current := list.Head
 	for current != nil {
 		fmt.Printf("%v ", current.Value)

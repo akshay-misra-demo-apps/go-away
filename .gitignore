@@ -3,7 +3,8 @@
 SQscript.sh
 
 ## Do not allow binaries
-DOMBackend*
+go-cart/go-cart*
 
 ## excluding Vendor folder
 vendor/
+
