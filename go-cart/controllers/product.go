@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -95,15 +96,21 @@ func (p ProductController) PatchProduct(c *gin.Context) {
 	product.Id = objectId
 
 	updated, err := p.Service.Patch(&product)
-	if err != nil {
+	if err == nil {
+		c.JSON(200, gin.H{
+			"data": updated,
+		})
+	}
+
+	if strings.Contains(err.Error(), "not found") {
+		c.JSON(404, gin.H{
+			"message": fmt.Sprintf("%v", err.Error()),
+		})
+	} else {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
 	}
-
-	c.JSON(200, gin.H{
-		"data": updated,
-	})
 }
 
 func (p ProductController) DeleteProduct(c *gin.Context) {

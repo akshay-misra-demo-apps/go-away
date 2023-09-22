@@ -28,13 +28,7 @@ func Init() {
 	}
 
 	initProductRepo(connection)
-}
-
-func initProductRepo(connection database.DBConnection) {
-	productRepository := ProductRepository{
-		connection: connection,
-	}
-	repositories["product"] = productRepository
+	initUserRepo(connection)
 }
 
 func Get() Repositories {

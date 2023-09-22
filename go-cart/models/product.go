@@ -5,6 +5,7 @@ import (
 )
 
 type Product struct {
+	Entity
 	Id          primitive.ObjectID `json:"id" bson:"_id"`
 	Name        string             `json:"name" bson:"name"`
 	Description string             `json:"description,omitempty" bson:"description"`

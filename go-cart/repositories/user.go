@@ -5,21 +5,21 @@ import (
 	"gocart.com/go-cart/database"
 )
 
-type ProductRepository struct {
+type UserRepository struct {
 	connection database.DBConnection
 }
 
 // GetCollection Call this everytime we want to interact with the mongo collection, like insert, read etc.
-func (r ProductRepository) GetCollection() *mongo.Collection {
-	// Get Products collection
+func (r UserRepository) GetCollection() *mongo.Collection {
+	// Get Users collection
 	return r.connection.Client.
 		Database("go-cart").
-		Collection("Products")
+		Collection("Users")
 }
 
-func initProductRepo(connection database.DBConnection) {
-	productRepository := ProductRepository{
+func initUserRepo(connection database.DBConnection) {
+	userRepository := UserRepository{
 		connection: connection,
 	}
-	repositories["product"] = productRepository
+	repositories["user"] = userRepository
 }

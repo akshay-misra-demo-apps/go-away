@@ -23,6 +23,11 @@ func App() {
 	productController := controllers.GetProductController(productService)
 	routes.ProductRoutes(server, productController)
 
+	userRepository := repositories.Get()["user"]
+	userService := services.GetUserService(userRepository)
+	userController := controllers.GetUserController(userService)
+	routes.UserRoutes(server, userController)
+
 	if err := server.Run(":4000"); err != nil {
 		log.Fatalf("error while creating http server %v", err.Error())
 	}
