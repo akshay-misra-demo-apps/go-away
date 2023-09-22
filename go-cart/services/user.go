@@ -47,7 +47,7 @@ func (u *UserService) Register(user *models.User) (*models.User, error) {
 
 }
 
-func (u *UserService) Authenticate(user *models.User) (auth *models.Auth, err error) {
+func (u *UserService) Authenticate(user *models.AuthRequest) (auth *models.Auth, err error) {
 	out := &models.User{}
 
 	result := u.repository.GetCollection().FindOne(context.TODO(),

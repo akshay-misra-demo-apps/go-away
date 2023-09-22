@@ -15,6 +15,11 @@ type User struct {
 	UpdateAt  string             `json:"updateAt,omitempty" bson:"updateAt,omitempty"`
 }
 
+type AuthRequest struct {
+	Username string `json:"username" bson:"username" binding:"required"`
+	Password string `json:"password" bson:"password" binding:"required"`
+}
+
 type Auth struct {
 	Token    string
 	Id       string
