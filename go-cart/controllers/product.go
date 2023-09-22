@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gocart.com/go-cart/interfaces"
 	"gocart.com/go-cart/models"
+	"gocart.com/go-cart/utils"
 )
 
 type ProductController struct {
@@ -28,6 +29,7 @@ func (p ProductController) GetProducts(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
+		return
 	}
 
 	c.JSON(200, gin.H{
@@ -42,6 +44,7 @@ func (p ProductController) GetProduct(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"message": "product 'id' is missing in request!",
 		})
+		return
 	}
 
 	product, err := p.Service.Get(c.Param("id"))
@@ -49,6 +52,7 @@ func (p ProductController) GetProduct(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
+		return
 	}
 
 	c.JSON(200, gin.H{
@@ -57,6 +61,20 @@ func (p ProductController) GetProduct(c *gin.Context) {
 }
 
 func (p ProductController) CreateProduct(c *gin.Context) {
+	ok, err := utils.ValidateToken(c.GetHeader("Authorization"))
+	if err != nil {
+		c.JSON(403, gin.H{
+			"message": fmt.Sprintf("internal server error: %v", err.Error()),
+		})
+		return
+	}
+	if !ok {
+		c.JSON(403, gin.H{
+			"message": fmt.Sprintf("authentication error: %v", err.Error()),
+		})
+
+		return
+	}
 	fmt.Println("create new product")
 	var product models.Product
 	c.Bind(&product)
@@ -68,6 +86,7 @@ func (p ProductController) CreateProduct(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
+		return
 	}
 
 	c.JSON(201, gin.H{
@@ -82,6 +101,7 @@ func (p ProductController) PatchProduct(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"message": "product 'id' is missing in request!",
 		})
+		return
 	}
 
 	var product models.Product
@@ -92,6 +112,7 @@ func (p ProductController) PatchProduct(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
+		return
 	}
 	product.Id = objectId
 
@@ -100,6 +121,7 @@ func (p ProductController) PatchProduct(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"data": updated,
 		})
+		return
 	}
 
 	if strings.Contains(err.Error(), "not found") {
@@ -120,6 +142,7 @@ func (p ProductController) DeleteProduct(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"message": "product 'id' is missing in request!",
 		})
+		return
 	}
 
 	err := p.Service.Delete(c.Param("id"))
@@ -127,6 +150,7 @@ func (p ProductController) DeleteProduct(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
+		return
 	}
 
 	c.JSON(200, gin.H{

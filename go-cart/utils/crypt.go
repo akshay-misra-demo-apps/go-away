@@ -35,7 +35,7 @@ func GenerateToken(user *models.User) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = user.Username
 	// Token expires in 24 hours
-	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
+	claims["exp"] = time.Now().Add(time.Second * 15).Unix()
 
 	// Sign the token with a secret
 	secret := []byte(SECRET)
@@ -47,6 +47,26 @@ func GenerateToken(user *models.User) (string, error) {
 	return tokenString, nil
 }
 
-func ValidateToken() {
+func ValidateToken(tokenString string) (bool, error) {
+	// Parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Check the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 
+		// Return the secret key used for signing
+		return []byte("go-cart.com.007"), nil
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	// Check if the token is valid
+	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return true, nil
+	} else {
+		return false, fmt.Errorf("invalid token")
+	}
 }

@@ -33,6 +33,7 @@ func (u UserController) Register(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
+		return
 	}
 
 	c.JSON(201, gin.H{
@@ -50,6 +51,7 @@ func (u UserController) Login(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"data": auth,
 		})
+		return
 	}
 
 	if strings.Contains(err.Error(), "not found") {
@@ -61,7 +63,6 @@ func (u UserController) Login(c *gin.Context) {
 			"message": fmt.Sprintf("internal server error: %v", err.Error()),
 		})
 	}
-
 }
 
 func (u UserController) Logout(c *gin.Context) {

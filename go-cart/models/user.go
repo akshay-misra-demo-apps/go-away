@@ -7,9 +7,9 @@ import (
 type User struct {
 	Entity
 	Id        primitive.ObjectID `json:"id" bson:"_id"`
-	Name      string             `json:"name" bson:"name,required"`
-	Username  string             `json:"username" bson:"username,required"`
-	Password  string             `json:"password" bson:"password,required"`
+	Name      string             `json:"name" bson:"name" binding:"required"`
+	Username  string             `json:"username" bson:"username" binding:"required"`
+	Password  string             `json:"password" bson:"password" binding:"required"`
 	Status    string             `json:"status" bson:"status"`
 	CreatedAt string             `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
 	UpdateAt  string             `json:"updateAt,omitempty" bson:"updateAt,omitempty"`
