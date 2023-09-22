@@ -33,7 +33,7 @@ func GenerateToken(user *models.User) (string, error) {
 
 	// Set claims (payload)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["username"] = user.Username
+	claims["sub"] = user.Username
 	// Token expires in 24 hours
 	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
 
@@ -45,4 +45,8 @@ func GenerateToken(user *models.User) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func ValidateToken() {
+
 }
