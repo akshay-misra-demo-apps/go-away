@@ -134,11 +134,7 @@ func (p *ProductService) Delete(id string) error {
 		return err
 	}
 	result, err := p.repository.GetCollection().DeleteOne(context.TODO(), bson.M{"_id": objectId})
-	if err == mongo.ErrNoDocuments {
-		return fmt.Errorf("product with id %v not found", id)
-	}
-
-	if result.DeletedCount == 0 {
+	if err == mongo.ErrNoDocuments || result.DeletedCount == 0 {
 		return fmt.Errorf("product with id %v not found", id)
 	}
 

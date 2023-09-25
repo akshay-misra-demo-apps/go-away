@@ -16,14 +16,15 @@ type User struct {
 }
 
 type AuthRequest struct {
-	Username string `json:"username" bson:"username" binding:"required"`
-	Password string `json:"password" bson:"password" binding:"required"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type Auth struct {
-	Token    string
-	Id       string
-	Username string
+	Token        string `json:"username"`
+	RefreshToken string `json:"username"`
+	Id           string
+	Username     string
 	// Change to enum
 	Status string
 }

@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	json2 "encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -86,14 +88,71 @@ func (u *UserService) Authenticate(user *models.AuthRequest) (auth *models.Auth,
 func (u *UserService) Logout(id string) error {
 	return nil
 }
-func (u *UserService) GetUser(string) (*models.User, error) {
-	return nil, nil
+func (u *UserService) Get(id string) (*models.User, error) {
+	out := &models.User{}
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	result := u.repository.GetCollection().FindOne(context.TODO(), bson.M{"_id": objectId})
+
+	if result.Err() == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	result.Decode(out)
+
+	return out, nil
 }
 
-func (u *UserService) PatchUser(user *models.User) (*models.User, error) {
-	return nil, nil
+func (u *UserService) Patch(user *models.User) (*models.User, error) {
+	if json, err := json2.Marshal(user); err == nil {
+		log.Printf("patched existing user: %v", string(json))
+	}
+
+	var updates map[string]interface{}
+	json, err := json2.Marshal(user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json2.Unmarshal(json, &updates)
+	if err != nil {
+		return nil, err
+	}
+
+	patch := bson.M{"$set": updates}
+	filter := bson.D{{"_id", user.Id}}
+
+	result, err := u.repository.GetCollection().UpdateOne(context.TODO(), filter, patch)
+	if err != nil {
+		return nil, fmt.Errorf("error while patching existing product to database: %v", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return nil, fmt.Errorf("user with id %v not found", user.Id.String())
+	}
+
+	return user, nil
 }
 
-func (u *UserService) DeleteUser(id string) error {
+func (u *UserService) Delete(id string) error {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	result, err := u.repository.GetCollection().DeleteOne(context.TODO(), bson.M{"_id": objectId})
+	if err == mongo.ErrNoDocuments || result.DeletedCount == 0 {
+		return fmt.Errorf("user with id %v not found", id)
+	}
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
