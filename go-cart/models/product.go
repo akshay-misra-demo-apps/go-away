@@ -7,9 +7,9 @@ import (
 type Product struct {
 	Entity
 	Id          primitive.ObjectID `json:"id" bson:"_id"`
-	Name        string             `json:"name" bson:"name" binding:"required"`
+	Name        string             `json:"name" bson:"name"`
 	Description string             `json:"description,omitempty" bson:"description"`
-	BasePrice   string             `json:"basePrice" bson:"basePrice" binding:"required"`
+	BasePrice   string             `json:"basePrice" bson:"basePrice"`
 	ImageURL    string             `json:"imageURL,omitempty" bson:"imageURL"`
 	Version     int                `json:"version" bson:"version"`
 }

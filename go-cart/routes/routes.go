@@ -5,23 +5,41 @@ import (
 	"gocart.com/go-cart/controllers"
 )
 
-func UserRoutes(r *gin.Engine, c *controllers.UserController) {
+func NoAuthRoutes(r *gin.Engine, c *controllers.UserController) *gin.RouterGroup {
 	// user management routes
-	product := r.Group("/api/user")
-	product.POST("/register", c.Register)
-	product.POST("/login", c.Login)
-	product.POST("/logout", c.Logout)
-	product.GET("/:id", c.GetUser)
-	product.PATCH("/:id", c.PatchUser)
-	product.DELETE("/:id", c.DeleteUser)
+	user := r.Group("/auth/user")
+
+	user.POST("/register", c.Register)
+	user.POST("/login", c.Login)
+	user.POST("/logout", c.Logout)
+
+	return user
 }
 
-func ProductRoutes(r *gin.Engine, c *controllers.ProductController) {
+func UserRoutes(r *gin.Engine, c *controllers.UserController) *gin.RouterGroup {
+	// user management routes
+	user := r.Group("/api/user")
+	user.GET("/:id", c.GetUser)
+	user.PATCH("/:id", c.PatchUser)
+	user.DELETE("/:id", c.DeleteUser)
+
+	return user
+}
+
+func ProductRoutes(r *gin.Engine, c *controllers.ProductController) *gin.RouterGroup {
 	// product catalog management routes
 	product := r.Group("/api/product")
 	product.GET("/", c.GetProducts)
 	product.GET("/:id", c.GetProduct)
+
+	return product
+}
+
+func AuthorizedProductRoutes(product *gin.RouterGroup, c *controllers.ProductController) *gin.RouterGroup {
+	// product catalog management routes
 	product.POST("/", c.CreateProduct)
 	product.PATCH("/:id", c.PatchProduct)
 	product.DELETE("/:id", c.DeleteProduct)
+
+	return product
 }
