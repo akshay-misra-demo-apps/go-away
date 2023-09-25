@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,8 +17,8 @@ func Encrypt(key string, cost int) (hashed string, err error) {
 	return string(hashedBytes), err
 }
 
-// Compare return true if password matched, else false
-func Compare(original, hashed string) bool {
+// IsValidPassword return true if password matched, else false
+func IsValidPassword(original, hashed string) bool {
 	fmt.Printf("original password: %v - %v", original, hashed)
 	err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(original))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
@@ -33,7 +34,7 @@ func GenerateToken(user *models.User) (string, error) {
 
 	// Set claims (payload)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["sub"] = user.Username
+	claims["sub"] = user.Email
 	// Token expires in 24 hours
 	claims["exp"] = time.Now().Add(time.Second * 30).Unix()
 
@@ -45,6 +46,41 @@ func GenerateToken(user *models.User) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func GenerateTokenWithRefresh(email string,
+	firstName string,
+	userType string,
+	uid string) (signedToken string, signedRefreshToken string, err error) {
+
+	claims := &models.SignedDetails{
+		Email:     email,
+		FirstName: firstName,
+		Uid:       uid,
+		UserType:  userType,
+		MapClaims: jwt.MapClaims{
+			"exp": time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
+			"iat": time.Now().Local().Unix(),
+			"iss": "go-cart-auth",
+			"sub": email,
+		},
+	}
+
+	refreshClaims := &models.SignedDetails{
+		MapClaims: jwt.MapClaims{
+			"exp": time.Now().Local().Add(time.Hour * time.Duration(168)).Unix(),
+		},
+	}
+
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET))
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(SECRET))
+
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+
+	return token, refreshToken, err
 }
 
 func ValidateToken(tokenString string) (bool, error) {

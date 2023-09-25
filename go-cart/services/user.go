@@ -3,13 +3,16 @@ package services
 import (
 	"context"
 	json2 "encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"gocart.com/go-cart/interfaces"
 	"gocart.com/go-cart/models"
 	"gocart.com/go-cart/repositories"
@@ -27,38 +30,60 @@ func GetUserService(repository repositories.IRepository) interfaces.IUser {
 	}
 }
 
-func (u *UserService) Register(user *models.User) (*models.User, error) {
+func (u *UserService) Register(user *models.User) (*models.SignupResponse, error) {
 
 	user.Id = primitive.NewObjectID()
+	user.Email = strings.ToLower(user.Email)
+	user.PasswordConfirm = ""
+	user.Verified = false
+	user.Role = "user"
+	user.Status = "active"
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 
 	hashed, err := utils.Encrypt(user.Password, bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("error while inserting new user to database: %v", err)
 	}
-
 	user.Password = hashed
-	user.Status = "active"
-	user.CreatedAt = time.Now().Local().String()
 
 	_, err = u.repository.GetCollection().InsertOne(context.TODO(), user)
 	if err != nil {
+		if er, ok := err.(mongo.WriteException); ok && er.WriteErrors[0].Code == 11000 {
+			return nil, errors.New("user with that email already exist")
+		}
 		return nil, fmt.Errorf("error while inserting new user to database: %v", err)
 	}
 
-	return user, nil
+	// Create a unique index for the email field
+	opt := options.Index()
+	opt.SetUnique(true)
+	index := mongo.IndexModel{Keys: bson.M{"email": 1}, Options: opt}
+
+	if _, err := u.repository.GetCollection().Indexes().CreateOne(context.TODO(), index); err != nil {
+		return nil, errors.New("could not create index for email")
+	}
+
+	response := models.SignupResponse{
+		Name:      user.Name,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+	}
+
+	return &response, nil
 
 }
 
-func (u *UserService) Authenticate(user *models.AuthRequest) (auth *models.Auth, err error) {
+func (u *UserService) Authenticate(user *models.Login) (auth *models.LoginResponse, err error) {
 	out := &models.User{}
 
 	result := u.repository.GetCollection().FindOne(context.TODO(),
 		bson.M{
-			"username": user.Username,
+			"email": user.Email,
 		})
 
 	if result.Err() == mongo.ErrNoDocuments {
-		return nil, fmt.Errorf("user %v not found", user.Username)
+		return nil, fmt.Errorf("user with email %v not found", user.Email)
 	}
 
 	if result.Err() != nil {
@@ -67,19 +92,17 @@ func (u *UserService) Authenticate(user *models.AuthRequest) (auth *models.Auth,
 
 	result.Decode(out)
 
-	if utils.Compare(user.Password, out.Password) {
-		token, err := utils.GenerateToken(out)
-		if err != nil {
-			return nil, fmt.Errorf("error while generating JWT token for user: %v", user.Username)
-		}
-		auth = &models.Auth{
-			Id:       out.Id.String(),
-			Username: out.Username,
-			Status:   out.Status,
-			Token:    token,
-		}
-	} else {
-		return nil, fmt.Errorf("wrong password for user: %v", user.Username)
+	if !utils.IsValidPassword(user.Password, out.Password) {
+		return nil, fmt.Errorf("wrong password for user with email: %v", user.Email)
+	}
+
+	token, refreshToken, err := utils.GenerateTokenWithRefresh(out.Email, out.Name, out.Role, out.Id.Hex())
+	if err != nil {
+		return nil, fmt.Errorf("error while generating JWT token for user with email: %v", user.Email)
+	}
+	auth = &models.LoginResponse{
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 
 	return

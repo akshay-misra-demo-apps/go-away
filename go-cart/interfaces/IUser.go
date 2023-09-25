@@ -5,8 +5,8 @@ import (
 )
 
 type IUser interface {
-	Register(*models.User) (*models.User, error)
-	Authenticate(*models.AuthRequest) (*models.Auth, error)
+	Register(*models.User) (*models.SignupResponse, error)
+	Authenticate(*models.Login) (*models.LoginResponse, error)
 	Logout(string) error
 	Get(string) (*models.User, error)
 	Patch(*models.User) (*models.User, error)

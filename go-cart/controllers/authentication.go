@@ -43,7 +43,7 @@ func (u UserController) Register(c *gin.Context) {
 
 func (u UserController) Login(c *gin.Context) {
 	fmt.Println("login route")
-	var user models.AuthRequest
+	var user models.Login
 	c.Bind(&user)
 
 	auth, err := u.Service.Authenticate(&user)
